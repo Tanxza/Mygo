@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#F1EFE9" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="ตารางออกกำลังกาย" />
+  <title>ตารางออกกำลังกายประจำสัปดาห์</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --paper: #F1EFE9;
+      --card: #FAF9F5;
+      --ink: #1A1916;
+      --ink-soft: #6B675D;
+      --line: #E0DCD0;
+      --chalk: #1C1B18;
+      --chalk-ink: #F1EFE6;
+      --chalk-soft: #B6B2A4;
+      --chalk-line: #39372F;
+      --mark: #B9831A;
+      --mark-ink: #FFFFFF;
+      --radius: 16px;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%
+    }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'IBM Plex Sans Thai', 'IBM Plex Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
+      user-select: none
+    }
+
+    .mono {
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500;
+      letter-spacing: -0.2px
+    }
+
+    .page {
+      max-width: 660px;
+      margin: 0 auto;
+      padding: 36px 20px 60px;
+      padding-top: max(36px, calc(20px + env(safe-area-inset-top)));
+      padding-bottom: max(60px, calc(30px + env(safe-area-inset-bottom)));
+      padding-left: max(20px, env(safe-area-inset-left));
+      padding-right: max(20px, env(safe-area-inset-right));
+    }
+
+    /* ── MASTHEAD ── */
+    .masthead {
+      margin-bottom: 28px
+    }
+
+    .eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      color: var(--ink-soft);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap
+    }
+
+    .title-row h1 {
+      font-family: 'Archivo', sans-serif;
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: -0.3px;
+    }
+
+    .jump-today {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      background: transparent;
+      border: 1.5px solid var(--ink);
+      color: var(--ink);
+      padding: 7px 13px;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s, color .15s;
+    }
+
+    .jump-today:hover {
+      background: var(--ink);
+      color: var(--card)
+    }
+
+    .week-dots {
+      display: flex;
+      gap: 7px;
+      margin-top: 18px
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      border: 1.5px solid var(--ink-soft);
+      background: transparent;
+      flex-shrink: 0;
+    }
+
+    .dot.filled {
+      background: var(--ink);
+      border-color: var(--ink)
+    }
+
+    .dot.today {
+      box-shadow: 0 0 0 2.5px var(--mark);
+      border-color: var(--mark)
+    }
+
+    .dot.dash {
+      border-radius: 3px;
+      width: 11px;
+      height: 3px;
+      align-self: center;
+      border: none;
+      background: var(--ink-soft)
+    }
+
+    /* ── RITUAL CARD ── */
+    .ritual-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 22px;
+    }
+
+    .ritual-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--mark);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 9px;
+    }
+
+    .ritual-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .ritual-list li {
+      font-size: 14px;
+      color: var(--ink-soft);
+      display: flex;
+      gap: 8px;
+      align-items: baseline
+    }
+
+    .ritual-list .mono {
+      color: var(--ink);
+      font-size: 13px;
+      flex-shrink: 0;
+      min-width: 74px
+    }
+
+    /* ── WEEK / DAY CARDS ── */
+    .week {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 30px
+    }
+
+    .day-card {
+      --card-bg: var(--card);
+      --card-ink: var(--ink);
+      --card-soft: var(--ink-soft);
+      --card-line: var(--line);
+      background: var(--card-bg);
+      color: var(--card-ink);
+      border: 1px solid var(--card-line);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      scroll-margin-top: 20px;
+      transition: background .2s, color .2s, border-color .2s;
+    }
+
+    .day-card.is-today {
+      --card-bg: var(--chalk);
+      --card-ink: var(--chalk-ink);
+      --card-soft: var(--chalk-soft);
+      --card-line: var(--chalk-line);
+    }
+
+    .day-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px
+    }
+
+    .day-id {
+      display: flex;
+      align-items: baseline;
+      gap: 12px
+    }
+
+    .day-num {
+      font-family: 'Archivo', sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      color: var(--card-soft);
+      line-height: 1
+    }
+
+    .day-name {
+      font-family: 'Archivo', sans-serif;
+      font-weight: 800;
+      font-size: 17px
+    }
+
+    .day-focus {
+      font-size: 13px;
+      color: var(--card-soft);
+      margin-top: 3px
+    }
+
+    .today-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 600;
+      background: var(--mark);
+      color: var(--mark-ink);
+      padding: 4px 9px;
+      border-radius: 999px;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .caution-tag {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 600;
+      border: 1.3px solid var(--card-line);
+      color: var(--card-soft);
+      padding: 3px 9px;
+      border-radius: 999px;
+      letter-spacing: .3px;
+      white-space: nowrap;
+    }
+
+    .sub-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--card-soft);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 14px 0 8px;
+    }
+
+    .sub-label:first-of-type {
+      margin-top: 0
+    }
+
+    .ex-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 0;
+      border-top: 1px solid var(--card-line);
+      flex-wrap: wrap;
+    }
+
+    .ex-row:first-of-type {
+      border-top: none
+    }
+
+    .check {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      flex-shrink: 0;
+      border: 1.6px solid var(--card-line);
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      position: relative;
+    }
+
+    .check::after {
+      content: '';
+      position: absolute;
+      top: -11px;
+      right: -11px;
+      bottom: -11px;
+      left: -11px;
+    }
+
+    .check svg {
+      width: 14px;
+      height: 14px;
+      overflow: visible
+    }
+
+    .check svg path {
+      fill: none;
+      stroke: var(--card-bg);
+      stroke-width: 2.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 20;
+      stroke-dashoffset: 20;
+      transition: stroke-dashoffset .25s ease;
+    }
+
+    .check.checked {
+      background: var(--mark);
+      border-color: var(--mark)
+    }
+
+    .check.checked svg path {
+      stroke-dashoffset: 0
+    }
+
+    .check:focus-visible {
+      outline: 2px solid var(--mark);
+      outline-offset: 2px
+    }
+
+    .ex-name {
+      flex: 1;
+      min-width: 120px;
+      font-size: 14.5px;
+      font-weight: 500
+    }
+
+    .ex-row.is-done .ex-name {
+      color: var(--card-soft);
+      text-decoration: line-through
+    }
+
+    .ex-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-shrink: 0;
+      margin-left: auto;
+      padding-left: 38px
+    }
+
+    .ex-sets {
+      font-size: 13px;
+      white-space: nowrap
+    }
+
+    .ex-rest {
+      font-size: 11.5px;
+      color: var(--card-soft);
+      white-space: nowrap
+    }
+
+    .rest-note,
+    .active-note {
+      font-size: 14px;
+      color: var(--card-soft)
+    }
+
+    .active-note {
+      margin-bottom: 4px
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+
+      .check svg path,
+      .day-card {
+        transition: none
+      }
+    }
+
+    /* ── NOTES ── */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 36px
+    }
+
+    .note-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+    }
+
+    .note-card h3 {
+      font-family: 'Archivo', sans-serif;
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 12px;
+      letter-spacing: -0.1px;
+    }
+
+    .note-card dl {
+      display: flex;
+      flex-direction: column;
+      gap: 7px
+    }
+
+    .note-card dl>div {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 13.5px
+    }
+
+    .note-card dt {
+      color: var(--ink-soft)
+    }
+
+    .note-card dd {
+      font-size: 13px
+    }
+
+    .note-total {
+      border-top: 1px solid var(--line);
+      margin-top: 4px;
+      padding-top: 9px;
+      font-weight: 600
+    }
+
+    .note-sub {
+      font-size: 11px;
+      color: var(--mark);
+      font-weight: 600;
+      letter-spacing: .3px;
+      margin-top: 10px;
+      margin-bottom: 3px
+    }
+
+    .note-sub:first-of-type {
+      margin-top: 0
+    }
+
+    .note-card p:not(.note-sub) {
+      font-size: 13.5px;
+      color: var(--ink-soft)
+    }
+
+    footer {
+      text-align: center
+    }
+
+    .reset-link {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--ink-soft);
+      background: none;
+      border: none;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 6px;
+    }
+
+    .reset-link:hover {
+      color: var(--ink)
+    }
+
+    @media (min-width:760px) {
+      .page {
+        padding: 56px 20px 70px
+      }
+
+      .notes-grid {
+        grid-template-columns: 1fr 1fr 1.2fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <header class="masthead">
+      <p class="eyebrow">Training Log</p>
+      <div class="title-row">
+        <h1>ตารางออกกำลังกาย</h1>
+        <button class="jump-today" onclick="jumpToday()">วันนี้ →</button>
+      </div>
+      <div class="week-dots" id="week-dots"></div>
+    </header>
+
+    <section class="ritual-card">
+      <p class="ritual-label">ก่อนเริ่มทุกครั้ง</p>
+      <ul class="ritual-list">
+        <li><span class="mono">500 ml</span>ดื่มน้ำ</li>
+        <li><span class="mono">8–10 นาที</span>เดินบนลู่ ความเร็ว 5–6 (ไม่ต้องวิ่ง)</li>
+      </ul>
+    </section>
+
+    <main class="week" id="week"></main>
+
+    <section class="notes-grid">
+      <div class="note-card">
+        <h3>ระยะเวลา</h3>
+        <dl>
+          <div>
+            <dt>วอร์ม</dt>
+            <dd class="mono">10 นาที</dd>
+          </div>
+          <div>
+            <dt>เล่นเวท</dt>
+            <dd class="mono">50–70 นาที</dd>
+          </div>
+          <div>
+            <dt>คาร์ดิโอ</dt>
+            <dd class="mono">20 นาที</dd>
+          </div>
+          <div class="note-total">
+            <dt>รวม</dt>
+            <dd class="mono">≈ 1 ชม. 20 นาที</dd>
+          </div>
+        </dl>
+      </div>
+      <div class="note-card">
+        <h3>เวลาพัก</h3>
+        <dl>
+          <div>
+            <dt>เครื่องเล็ก</dt>
+            <dd class="mono">60–90 วิ</dd>
+          </div>
+          <div>
+            <dt>ขา</dt>
+            <dd class="mono">90–120 วิ</dd>
+          </div>
+        </dl>
+      </div>
+      <div class="note-card">
+        <h3>การกิน</h3>
+        <p class="note-sub">ก่อนยิม · 1–2 ชม.</p>
+        <p>ข้าว · อกไก่ · ไข่ · กล้วย</p>
+        <p class="note-sub">หลังยิม · ภายใน 2 ชม.</p>
+        <p>ข้าว · เนื้อสัตว์ · ไข่ · นม</p>
+        <p class="note-sub">น้ำ</p>
+        <p>อย่างน้อย 3 ลิตร/วัน</p>
+      </div>
+    </section>
+
+    <footer>
+      <button class="reset-link" onclick="resetAll()">ล้างเครื่องหมายทั้งหมด</button>
+    </footer>
+
+  </div>
+
+  <script>
+    // index 0 = Monday ... 6 = Sunday
+    const DAYS = [
+      {
+        short: 'จ', name: 'วันจันทร์', focus: 'อก · ไหล่ · หลังแขน',
+        groups: [
+          {
+            exercises: [
+              { name: 'Chest Press Machine', sets: '3 เซต', reps: '10–12 ครั้ง', rest: 'พัก 90 วิ' },
+              { name: 'Pec Deck', sets: '3 เซต', reps: '10–12 ครั้ง', rest: 'พัก 90 วิ' },
+              { name: 'Shoulder Press Machine', sets: '3 เซต', reps: '10 ครั้ง' },
+              { name: 'Lateral Raise Machine', sets: '3 เซต', reps: '12 ครั้ง' },
+              { name: 'Tricep Pushdown', sets: '3 เซต', reps: '12 ครั้ง' },
+            ]
+          },
+          {
+            label: 'คาร์ดิโอ', exercises: [
+              { name: 'เดินชัน', sets: '20 นาที', reps: 'ชัน 8–10 · เร็ว 5–5.5' },
+            ]
+          },
+        ]
+      },
+      {
+        short: 'อ', name: 'วันอังคาร', focus: 'หลัง · หน้าแขน',
+        groups: [
+          {
+            exercises: [
+              { name: 'Lat Pulldown', sets: '3 เซต', reps: '10 ครั้ง' },
+              { name: 'Seated Row', sets: '3 เซต', reps: '10 ครั้ง' },
+              { name: 'Assisted Pull-up', sets: '3 เซต', reps: '8–10 ครั้ง' },
+              { name: 'Bicep Curl Machine', sets: '3 เซต', reps: '12 ครั้ง' },
+              { name: 'Hammer Curl', sets: '3 เซต', reps: '12 ครั้ง' },
+            ]
+          },
+          {
+            label: 'หน้าท้อง', exercises: [
+              { name: 'Crunch Machine', sets: '3 เซต', reps: '15 ครั้ง' },
+              { name: 'Leg Raise', sets: '3 เซต', reps: '15 ครั้ง' },
+            ]
+          },
+          {
+            label: 'คาร์ดิโอ', exercises: [
+              { name: 'คาร์ดิโอ', sets: '15–20 นาที' },
+            ]
+          },
+        ]
+      },
+      {
+        short: 'พ', name: 'วันพุธ', focus: 'พักผ่อน', rest: true, restNote: 'เดิน 20–30 นาที',
+        groups: [{ exercises: [{ name: 'เดิน', sets: '20–30 นาที' }] }]
+      },
+      {
+        short: 'พฤ', name: 'วันพฤหัส', focus: 'ขา · ก้น · น่อง · หน้าท้อง', caution: 'ห้ามโดด',
+        groups: [
+          {
+            exercises: [
+              { name: 'Leg Press', sets: '4 เซต', reps: '12 ครั้ง' },
+              { name: 'Leg Extension', sets: '3 เซต', reps: '12 ครั้ง' },
+              { name: 'Leg Curl', sets: '3 เซต', reps: '12 ครั้ง' },
+              { name: 'Calf Raise', sets: '4 เซต', reps: '15 ครั้ง' },
+              { name: 'Plank', sets: '3 รอบ', reps: '30–60 วินาที' },
+            ]
+          },
+        ]
+      },
+      {
+        short: 'ศ', name: 'วันศุกร์', focus: 'Full Body',
+        groups: [
+          {
+            exercises: [
+              { name: 'Chest Press', sets: '3 เซต', reps: '10 ครั้ง' },
+              { name: 'Lat Pulldown', sets: '3 เซต', reps: '10 ครั้ง' },
+              { name: 'Shoulder Press', sets: '3 เซต', reps: '10 ครั้ง' },
+              { name: 'Leg Press', sets: '3 เซต', reps: '12 ครั้ง' },
+              { name: 'Bicep Curl', sets: '3 เซต', reps: '12 ครั้ง' },
+              { name: 'Tricep Pushdown', sets: '3 เซต', reps: '12 ครั้ง' },
+            ]
+          },
+          {
+            label: 'คาร์ดิโอ', exercises: [
+              { name: 'เดินชัน', sets: '20 นาที' },
+            ]
+          },
+        ]
+      },
+      {
+        short: 'ส', name: 'วันเสาร์', focus: 'กิจกรรม', active: true,
+        groups: [{
+          exercises: [
+            { name: 'เดิน' }, { name: 'ปั่นจักรยาน' }, { name: 'เล่นกีฬา' },
+          ]
+        }]
+      },
+      { short: 'อา', name: 'วันอาทิตย์', focus: 'พักเต็มวัน', fullRest: true, groups: [] },
+    ];
+
+    const jsDay = new Date().getDay();          // 0=Sun..6=Sat
+    const todayIdx = (jsDay + 6) % 7;            // 0=Mon..6=Sun
+
+    let checks = {};
+    try { checks = JSON.parse(localStorage.getItem('workout-checks') || '{}'); } catch (e) { checks = {}; }
+
+    function checkmarkSVG() {
+      return '<svg viewBox="0 0 14 14"><path d="M2.5 7.2L5.6 10.3L11.5 3.8"/></svg>';
+    }
+
+    function exRowHTML(dayIdx, uid, ex) {
+      const isChecked = !!checks[dayIdx + '_' + uid];
+      const metaParts = [ex.sets, ex.reps].filter(Boolean).join(' × ');
+      return `<div class="ex-row${isChecked ? ' is-done' : ''}">
+    <button class="check${isChecked ? ' checked' : ''}" role="checkbox" aria-checked="${isChecked}"
+      aria-label="${ex.name}" onclick="toggleCheck(${dayIdx},${uid},this)">${checkmarkSVG()}</button>
+    <span class="ex-name">${ex.name}</span>
+    <span class="ex-meta">
+      ${metaParts ? `<span class="ex-sets mono">${metaParts}</span>` : ''}
+      ${ex.rest ? `<span class="ex-rest mono">${ex.rest}</span>` : ''}
+    </span>
+  </div>`;
+    }
+
+    function dayCardHTML(day, idx) {
+      const isToday = idx === todayIdx;
+      let uid = 0;
+      let bodyHTML = '';
+
+      if (day.fullRest) {
+        bodyHTML = `<p class="rest-note">ไม่มีตารางฝึก — พักผ่อนให้เต็มที่</p>`;
+      } else if (day.active) {
+        bodyHTML = `<p class="active-note">เลือกทำอย่างน้อย 1 อย่าง</p>` +
+          day.groups[0].exercises.map(ex => exRowHTML(idx, uid++, ex)).join('');
+      } else {
+        bodyHTML = day.groups.map(g => `
+      ${g.label ? `<p class="sub-label">${g.label}</p>` : ''}
+      ${g.exercises.map(ex => exRowHTML(idx, uid++, ex)).join('')}
+    `).join('');
+      }
+
+      return `
+  <section class="day-card${isToday ? ' is-today' : ''}" id="day-${idx}">
+    <div class="day-head">
+      <div class="day-id">
+        <span class="day-num mono">${String(idx + 1).padStart(2, '0')}</span>
+        <div>
+          <div class="day-name">${day.name}</div>
+          <div class="day-focus">${day.focus}</div>
+        </div>
+      </div>
+      ${isToday ? '<span class="today-tag">วันนี้</span>' : ''}
+      ${day.caution ? `<span class="caution-tag">${day.caution}</span>` : ''}
+    </div>
+    ${bodyHTML}
+  </section>`;
+    }
+
+    function dayTotalCheckable(day) {
+      if (day.fullRest) return 0;
+      if (day.active) return day.groups[0].exercises.length;
+      return day.groups.reduce((s, g) => s + g.exercises.length, 0);
+    }
+
+    function dayCheckedCount(day, idx) {
+      const total = dayTotalCheckable(day);
+      let count = 0;
+      for (let u = 0; u < total; u++) { if (checks[idx + '_' + u]) count++; }
+      return count;
+    }
+
+    function renderWeek() {
+      document.getElementById('week').innerHTML = DAYS.map(dayCardHTML).join('');
+    }
+
+    function renderDots() {
+      const el = document.getElementById('week-dots');
+      el.innerHTML = DAYS.map((day, idx) => {
+        if (day.fullRest) return `<span class="dot dash"></span>`;
+        const total = dayTotalCheckable(day);
+        const done = dayCheckedCount(day, idx);
+        const filled = total > 0 && done === total;
+        const cls = ['dot', filled ? 'filled' : '', idx === todayIdx ? 'today' : ''].filter(Boolean).join(' ');
+        return `<span class="${cls}"></span>`;
+      }).join('');
+    }
+
+    function toggleCheck(dayIdx, uid, btn) {
+      const key = dayIdx + '_' + uid;
+      checks[key] = !checks[key];
+      localStorage.setItem('workout-checks', JSON.stringify(checks));
+      btn.classList.toggle('checked', checks[key]);
+      btn.setAttribute('aria-checked', checks[key]);
+      btn.closest('.ex-row').classList.toggle('is-done', checks[key]);
+      renderDots();
+    }
+
+    function resetAll() {
+      checks = {};
+      localStorage.removeItem('workout-checks');
+      renderWeek();
+      renderDots();
+    }
+
+    function jumpToday() {
+      document.getElementById('day-' + todayIdx).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    renderWeek();
+    renderDots();
+  </script>
+</body>
+
+</html>
